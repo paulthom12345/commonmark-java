@@ -1,6 +1,7 @@
 package org.commonmark.test;
 
 import org.commonmark.html.AttributeProvider;
+import org.commonmark.html.AttributeProviderFactory;
 import org.commonmark.html.HtmlRenderer;
 import org.commonmark.html.renderer.NodeRenderer;
 import org.commonmark.html.renderer.NodeRendererContext;
@@ -104,6 +105,29 @@ public class HtmlRendererTest {
 
         String rendered2 = renderer.render(parse("```evil\"\ncontent\n```"));
         assertEquals("<pre><code data-custom=\"evil&quot;\">content\n</code></pre>\n", rendered2);
+    }
+
+    @Test
+    public void attributeProviderFactoryNewInstanceForEachRender() {
+        AttributeProviderFactory factory = new AttributeProviderFactory() {
+            @Override
+            public AttributeProvider newInstance() {
+                return new AttributeProvider() {
+                    int i = 0;
+
+                    @Override
+                    public void setAttributes(Node node, Map<String, String> attributes) {
+                        attributes.put("key", "" + i);
+                        i++;
+                    }
+                };
+            }
+        };
+
+        HtmlRenderer renderer = HtmlRenderer.builder().attributeProvider(factory).build();
+        String rendered = renderer.render(parse("text node"));
+        String secondPass = renderer.render(parse("text node"));
+        assertEquals(rendered, secondPass);
     }
 
     @Test
