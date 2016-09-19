@@ -28,12 +28,14 @@ public class HtmlRenderer {
     private final boolean percentEncodeUrls;
     private final List<AttributeProvider> attributeProviders;
     private final List<NodeRendererFactory> nodeRendererFactories;
+    private final List<AttributeProviderFactory> attributeProviderFactories;
 
     private HtmlRenderer(Builder builder) {
         this.softbreak = builder.softbreak;
         this.escapeHtml = builder.escapeHtml;
         this.percentEncodeUrls = builder.percentEncodeUrls;
         this.attributeProviders = builder.attributeProviders;
+        this.attributeProviderFactories = builder.attributeProviderFactories;
 
         this.nodeRendererFactories = new ArrayList<>(builder.nodeRendererFactories.size() + 1);
         this.nodeRendererFactories.addAll(builder.nodeRendererFactories);
@@ -82,6 +84,7 @@ public class HtmlRenderer {
         private boolean percentEncodeUrls = false;
         private List<AttributeProvider> attributeProviders = new ArrayList<>();
         private List<NodeRendererFactory> nodeRendererFactories = new ArrayList<>();
+        private List<AttributeProviderFactory> attributeProviderFactories = new ArrayList<>();
 
         /**
          * @return the configured {@link HtmlRenderer}
@@ -151,6 +154,18 @@ public class HtmlRenderer {
         }
 
         /**
+         * Add an attribute provider factory for adding/changing the attributes to the rendered tags. Will be used
+         * to create an AttributeProvider for each document that is rendered
+         *
+         * @param attributeProviderFactory the attribute provider factory to supple Attribute providers for each render
+         * @return {@code this}
+         */
+        public Builder attributeProvider(AttributeProviderFactory attributeProviderFactory) {
+            this.attributeProviderFactories.add(attributeProviderFactory);
+            return this;
+        }
+
+        /**
          * Add a factory for instantiating a node renderer (done when rendering). This allows to override the rendering
          * of node types or define rendering for custom node types.
          * <p>
@@ -191,10 +206,15 @@ public class HtmlRenderer {
 
         private final HtmlWriter htmlWriter;
         private final Map<Class<? extends Node>, NodeRenderer> renderers;
+        private final List<AttributeProvider> factoryCreatedAttributeProviders = new ArrayList<>();
 
         private MainNodeRenderer(HtmlWriter htmlWriter) {
             this.htmlWriter = htmlWriter;
             this.renderers = new HashMap<>(32);
+
+            for (AttributeProviderFactory attributeProviderFactory : attributeProviderFactories) {
+                factoryCreatedAttributeProviders.add(attributeProviderFactory.newInstance());
+            }
 
             // The first node renderer for a node type "wins".
             for (int i = nodeRendererFactories.size() - 1; i >= 0; i--) {
@@ -248,6 +268,10 @@ public class HtmlRenderer {
 
         private void setCustomAttributes(Node node, Map<String, String> attrs) {
             for (AttributeProvider attributeProvider : attributeProviders) {
+                attributeProvider.setAttributes(node, attrs);
+            }
+
+            for (AttributeProvider attributeProvider : factoryCreatedAttributeProviders) {
                 attributeProvider.setAttributes(node, attrs);
             }
         }

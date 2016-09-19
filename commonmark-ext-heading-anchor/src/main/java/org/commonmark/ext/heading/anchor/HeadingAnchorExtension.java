@@ -1,9 +1,8 @@
 package org.commonmark.ext.heading.anchor;
 
 import org.commonmark.Extension;
+import org.commonmark.ext.heading.anchor.internal.HeadingIdAttributeProviderFactory;
 import org.commonmark.html.HtmlRenderer;
-
-import org.commonmark.ext.heading.anchor.internal.HeadingIdAttributeProvider;
 
 /**
  * Extension for adding auto generated ids to headings
@@ -40,6 +39,6 @@ public class HeadingAnchorExtension implements HtmlRenderer.HtmlRendererExtensio
 
     @Override
     public void extend(HtmlRenderer.Builder rendererBuilder) {
-        rendererBuilder.attributeProvider(HeadingIdAttributeProvider.create());
+        rendererBuilder.attributeProvider(HeadingIdAttributeProviderFactory.create());
     }
 }
