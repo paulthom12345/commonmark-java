@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.commonmark.ext.heading.anchor.UniqueIdentifierProvider;
 import org.commonmark.html.AttributeProvider;
+import org.commonmark.html.AttributeProviderFactory;
 import org.commonmark.node.AbstractVisitor;
 import org.commonmark.node.Code;
 import org.commonmark.node.Heading;
 import org.commonmark.node.Node;
 import org.commonmark.node.Text;
-
-import org.commonmark.ext.heading.anchor.UniqueIdentifierProvider;
 
 public class HeadingIdAttributeProvider implements AttributeProvider {
 
